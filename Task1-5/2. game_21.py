@@ -1,97 +1,140 @@
 import random
 
+
 SUITS = ["ყვავი", "ჯვარი", "გული", "აგური"]
-RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
+CARDS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace"]
 
 
-def create_deck():
-    deck = [(rank, suit) for suit in SUITS for rank in RANKS]
-    random.shuffle(deck)
-    return deck
+def make_deck():
+    cards = []
+
+    for suit in SUITS:
+        for card in CARDS:
+            cards.append((card, suit))
+
+    random.shuffle(cards)
+    return cards
 
 
-def card_value(rank):
-    if rank in ("Jack", "Queen", "King"):
+def get_card_points(card):
+    name = card[0]
+
+    if name in ["Jack", "Queen", "King"]:
         return 10
-    if rank == "Ace":
+
+    if name == "Ace":
         return 11
-    return int(rank)
+
+    return int(name)
 
 
-def calculate_score(hand):
-    return sum(card_value(rank) for rank, suit in hand)
+def total_points(hand):
+    points = sum(get_card_points(card) for card in hand)
+
+    aces = sum(1 for card in hand if card[0] == "Ace")
+
+    while points > 21 and aces:
+        points -= 10
+        aces -= 1
+
+    return points
 
 
-def show_hand(name, hand):
-    cards_str = ", ".join(f"{rank} {suit}" for rank, suit in hand)
-    print(f"{name}: {cards_str}  (ქულა: {calculate_score(hand)})")
+def print_cards(owner, cards):
+    print("\n" + owner)
+
+    for card in cards:
+        print(f"{card[0]} - {card[1]}")
+
+    print("სულ ქულა:", total_points(cards))
 
 
-def player_turn(deck, player_hand):
+def player_move(deck, hand):
+
     while True:
-        show_hand("თქვენი ბარათები", player_hand)
-        score = calculate_score(player_hand)
+        print_cards("თქვენი ბარათები:", hand)
 
-        if score > 21:
-            print("თქვენ გადააჭარბეთ 21-ს!")
-            return
-
-        choice = input("გსურთ კიდევ ბარათის აღება? (add/stop): ")
-        if choice == "stop":
-            return
-        else:
-            player_hand.append(deck.pop())
-
-
-def computer_turn(deck, computer_hand):
-    while calculate_score(computer_hand) < 17:
-        computer_hand.append(deck.pop())
-    show_hand("კომპიუტერის ბარათები", computer_hand)
-
-
-def determine_winner(player_hand, computer_hand):
-    player_score = calculate_score(player_hand)
-    computer_score = calculate_score(computer_hand)
-
-    print(f"\nთქვენი საბოლოო ქულა: {player_score}")
-    print(f"კომპიუტერის საბოლოო ქულა: {computer_score}")
-
-    if player_score > 21:
-        print("თქვენ წააგეთ")
-    elif computer_score > 21:
-        print("თქვენ მოიგეთ")
-    elif player_score > computer_score:
-        print("თქვენ მოიგეთ")
-    elif player_score < computer_score:
-        print("თქვენ წააგეთ")
-    else:
-        print("ფრეზე ვართ - ხელახლა ვარიგებთ!")
-
-
-def play_round():
-    deck = create_deck()
-
-    player_hand = [deck.pop(), deck.pop()]
-    computer_hand = [deck.pop(), deck.pop()]
-
-    print("\n===== ახალი რაუნდი =====")
-
-    player_turn(deck, player_hand)
-
-    if calculate_score(player_hand) <= 21:
-        computer_turn(deck, computer_hand)
-
-    determine_winner(player_hand, computer_hand)
-
-
-def main():
-    while True:
-        play_round()
-        again = input("\nგსურთ თამაშის თავიდან დაწყება? (კი/არა): ")
-        if again == "არა":
-            print("ნახვამდის!")
+        if total_points(hand) > 21:
+            print("თქვენ გადააჭარბეთ 21 ქულას!")
             break
 
+        answer = input(
+            "აიღებთ კიდევ ერთ ბარათს? (კი/არა): "
+        )
 
-if __name__ == "__main__":
-    main()
+        if answer.lower() == "კი":
+            hand.append(deck.pop())
+
+        elif answer.lower() == "არა":
+            break
+
+        else:
+            print("გთხოვთ დაწეროთ კი ან არა.")
+
+
+def dealer_move(deck, hand):
+
+    while total_points(hand) < 17:
+        hand.append(deck.pop())
+    print_cards("კომპიუტერის ბარათები:", hand)
+
+
+def check_result(player, dealer):
+
+    player_score = total_points(player)
+    dealer_score = total_points(dealer)
+
+    print("\n===== შედეგი =====")
+    print("თქვენი ქულა:", player_score)
+    print("კომპიუტერის ქულა:", dealer_score)
+
+
+    if player_score > 21:
+        print("კომპიუტერმა მოიგო.")
+
+    elif dealer_score > 21:
+        print("თქვენ მოიგეთ!")
+
+    elif player_score > dealer_score:
+        print("თქვენ მოიგეთ!")
+
+    elif player_score < dealer_score:
+        print("თქვენ წააგეთ.")
+
+    else:
+        print("ფრეა.")
+
+
+def start_game():
+    deck = make_deck()
+    user_cards = [
+        deck.pop(),
+        deck.pop()
+    ]
+    computer_cards = [
+        deck.pop(),
+        deck.pop()
+    ]
+
+    print("\n===== Blackjack =====")
+
+    player_move(deck, user_cards)
+
+    if total_points(user_cards) <= 21:
+        dealer_move(deck, computer_cards)
+
+    check_result(user_cards, computer_cards)
+
+def game_menu():
+
+    while True:
+        start_game()
+        again = input(
+            "\nგსურთ ახალი თამაში? (კი/არა): "
+        )
+
+        if again.lower() == "არა":
+            print("თამაში დასრულდა.")
+            break
+
+game_menu()
