@@ -1,86 +1,116 @@
 import random
 import logging
 
+
 logging.basicConfig(
-    filename="lottery_log.log",
+    filename="lottery_history.log",
     level=logging.INFO,
     format="%(asctime)s - %(message)s",
-    encoding="utf-8",
+    encoding="utf-8"
 )
 
-JACKPOT = 1000000
+MAX_PRIZE = 1000000
 
 
-def generate_computer_numbers():
-    return sorted(random.sample(range(1, 50), 6))
+def create_winning_numbers():
+
+    numbers = random.sample(range(1, 50),6)
+    return sorted(numbers)
 
 
-def get_player_numbers():
-    raw = input("შეიყვანეთ თქვენი 6 რიცხვი (1-49), გამოყავით space-ით: ")
-    numbers = [int(n) for n in raw.split()]
-    return numbers
+def enter_numbers():
+    while True:
+        try:
+            user_input = input(
+                "შეიყვანეთ 6 რიცხვი (1-49) space-ით: "
+            )
+            chosen = [
+                int(number)
+                for number in user_input.split()
+            ]
+
+            if len(chosen) != 6:
+                print("უნდა შეიყვანოთ ზუსტად 6 რიცხვი.")
+                continue
+
+            if any(number < 1 or number > 49 for number in chosen):
+                print("რიცხვები უნდა იყოს 1-დან 49-მდე.")
+                continue
+
+            if len(set(chosen)) != 6:
+                print("რიცხვები არ უნდა მეორდებოდეს.")
+                continue
+            return sorted(chosen)
+
+        except ValueError:
+            print("შეიყვანეთ მხოლოდ რიცხვები.")
 
 
-def count_matches(player_numbers, winning_numbers):
-    return len(set(player_numbers) & set(winning_numbers))
-
-
-def calculate_prize(matches):
-    if matches == 6:
-        return JACKPOT
-    elif matches == 5:
-        return JACKPOT * (1 - 0.40)
-    elif matches == 4:
-        return JACKPOT * (1 - 0.60)
-    elif matches == 3:
-        return JACKPOT * (1 - 0.80)
-    else:
-        return 0
-
-
-def play_round():
-    winning_numbers = generate_computer_numbers()
-    player_numbers = get_player_numbers()
-
-    matches = count_matches(player_numbers, winning_numbers)
-    prize = calculate_prize(matches)
-
-    print(f"\nგამარჯვებული რიცხვები: {winning_numbers}")
-    print(f"თქვენი რიცხვები: {sorted(player_numbers)}")
-    print(f"დამთხვევების რაოდენობა: {matches}")
-
-    if prize > 0:
-        print(f"გილოცავთ! თქვენ მოიგეთ: {prize:,.0f} ₾")
-    else:
-        print("სამწუხაროდ, ამჯერად ვერაფერს ვერ მოიგებთ.")
-
-    logging.info(
-        f"გათამაშება - გამარჯვებული: {winning_numbers}, მოთამაშის რიცხვები: {sorted(player_numbers)}, "
-        f"დამთხვევა: {matches}, მოგება: {prize:,.0f} ₾"
+def find_matches(player, computer):
+    return len(
+        set(player) & set(computer)
     )
 
 
-def show_menu():
-    print("\n===== ლატარიის სიმულატორი =====")
-    print("1. გათამაშებაში მონაწილეობა")
-    print("2. გასვლა")
+def get_reward(matches):
+    prizes = {
+        6: MAX_PRIZE,
+        5: MAX_PRIZE * 0.60,
+        4: MAX_PRIZE * 0.40,
+        3: MAX_PRIZE * 0.20
+    }
+
+    return prizes.get(matches, 0)
 
 
-def main():
-    logging.info("ლატარიის სესია დაიწყო")
+def play_lottery():
+    lucky_numbers = create_winning_numbers()
+    user_numbers = enter_numbers()
+    matched = find_matches(
+        user_numbers,
+        lucky_numbers
+    )
+
+    reward = get_reward(matched)
+    print("\n===== შედეგი =====")
+    print("გამარჯვებული ნომრები:", lucky_numbers)
+    print("თქვენი ნომრები:",user_numbers)
+    print("დამთხვევები:",matched)
+
+    if reward:
+        print(f"გილოცავთ! თქვენი მოგებაა {reward:,.0f} ₾")
+    else:
+        print("სამწუხაროდ, ვერ მოიგეთ.")
+
+    logging.info(
+        f"კომპიუტერი: {lucky_numbers}; "
+        f"მოთამაშე: {user_numbers}; "
+        f"დამთხვევა: {matched}; "
+        f"მოგება: {reward}"
+    )
+
+
+def menu():
+    print("""===== ლატარიის თამაში =====
+1. ახალი გათამაშება
+2. გამოსვლა
+""")
+
+def lottery_app():
+    logging.info("ლატარიის პროგრამა დაიწყო")
+
     while True:
-        show_menu()
-        choice = input("აირჩიეთ მოქმედება (1-2): ")
+        menu()
+        choice = input("აირჩიეთ მოქმედება: ")
 
         if choice == "1":
-            play_round()
+            play_lottery()
         elif choice == "2":
             print("ნახვამდის!")
-            logging.info("ლატარიის სესია დასრულდა")
+
+            logging.info("ლატარიის პროგრამა დასრულდა")
             break
         else:
-            print("გთხოვთ, აირჩიოთ 1 ან 2.")
+            print("აირჩიეთ მხოლოდ 1 ან 2.")
 
-
-if __name__ == "__main__":
-    main()
+lottery_app()
