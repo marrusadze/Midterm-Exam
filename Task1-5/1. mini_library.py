@@ -1,100 +1,121 @@
-library = [
-    {"title": "1984", "author": "ჯორჯ ორუელი", "year": 1949},
-    {"title": "ჰარი პოტერი და ფილოსოფიური ქვა", "author": "ჯოან როულინგი", "year": 1997},
-    {"title": "დანაშაული და სასჯელი", "author": "ფიოდор დოსტოევსკი", "year": 1866},
-    {"title": "ომი და მშვიდობა", "author": "ლევ ტოლსტოი", "year": 1869},
-    {"title": "პატარა უფლისწული", "author": "ანტუან დე სენტ-ეგზიუპერი", "year": 1943},
-    {"title": "ვეფხისტყაოსანი", "author": "შოთა რუსთაველი", "year": 1189},
-    {"title": "დათა თუთაშხია", "author": "ჩაბუა ამირეჯიბი", "year": 1975},
-    {"title": "ჰობიტი", "author": "ჯ.რ.რ. ტოლკინი", "year": 1937},
-    {"title": "ალქიმიკოსი", "author": "პაულო კოელიო", "year": 1988},
-    {"title": "ბრძოლის კლუბი", "author": "ჩაკ პალანიკი", "year": 1996},
+books = [
+    {"name": "1984", "writer": "ჯორჯ ორუელი", "date": 1949},
+    {"name": "ჰარი პოტერი და ფილოსოფიური ქვა", "writer": "ჯოან როულინგი", "date": 1997},
+    {"name": "დანაშაული და სასჯელი", "writer": "ფიოდორ დოსტოევსკი", "date": 1866},
+    {"name": "ომი და მშვიდობა", "writer": "ლევ ტოლსტოი", "date": 1869},
+    {"name": "პატარა უფლისწული", "writer": "ანტუან დე სენტ-ეგზიუპერი", "date": 1943},
+    {"name": "ვეფხისტყაოსანი", "writer": "შოთა რუსთაველი", "date": 1189},
+    {"name": "დათა თუთაშხია", "writer": "ჩაბუა ამირეჯიბი", "date": 1975},
+    {"name": "ჰობიტი", "writer": "ჯ.რ.რ. ტოლკინი", "date": 1937},
+    {"name": "ალქიმიკოსი", "writer": "პაულო კოელიო", "date": 1988},
+    {"name": "ბრძოლის კლუბი", "writer": "ჩაკ პალანიკი", "date": 1996}
 ]
 
 
-def show_books():
-    print("\n--- ბიბლიოთეკაში არსებული წიგნები ---")
-    if not library:
-        print("ბიბლიოთეკა ცარიელია.")
-        return
-    for i, book in enumerate(library, start=1):
-        print(f"{i}. {book['title']} / {book['author']} ({book['year']})")
-    print(f"სულ: {len(library)} წიგნი")
+def print_books():
+    print("\n===== წიგნების სია =====")
 
-
-def add_book():
-    raw = input("შეიყვანეთ წიგნი ფორმატით სახელი/ავტორი: ")
-    year = input("შეიყვანეთ გამოცემის წელი: ")
-
-    title, author = raw.split("/")
-
-    new_book = {
-        "title": title,
-        "author": author,
-        "year": year,
-    }
-    library.append(new_book)
-    print(f"წიგნი „{new_book['title']}“ დაემატა ბიბლიოთეკას. ახლა ბიბლიოთეკაში სულ {len(library)} წიგნია.")
-
-
-def borrow_book():
-    if not library:
-        print("ბიბლიოთეკა ცარიელია.")
+    if len(books) == 0:
+        print("წიგნები არ არის ხელმისაწვდომი.")
         return
 
-    show_books()
-    choice = int(input("აირჩიეთ წიგნის ნომერი, რომლის წაღებაც გსურთ: "))
+    for number, item in enumerate(books, 1):
+        print(
+            f"{number}) {item['name']} - {item['writer']} ({item['date']})"
+        )
+    print("წიგნების რაოდენობა:", len(books))
 
-    index = choice - 1
-    book = library.pop(index)
-    print(f"წიგნი „{book['title']}“ გაიტანეთ წასაკითხად. სასიამოვნო კითხვას გისურვებთ!")
+
+def insert_book():
+    data = input("შეიყვანეთ წიგნის სახელი და ავტორი (/): ")
+    published = input("შეიყვანეთ გამოცემის წელი: ")
+
+    try:
+        book_name, book_author = data.split("/")
+    except ValueError:
+        print("არასწორი ფორმატი!")
+        return
+
+    books.append({
+        "name": book_name.strip(),
+        "writer": book_author.strip(),
+        "date": published
+    })
+
+    print("წიგნი წარმატებით დაემატა.")
 
 
-def search_book():
-    print("\n--- წიგნის მოძებნა სათაურით ---")
-    query = input("შეიყვანეთ წიგნის სათაური: ")
+def take_book():
+    if not books:
+        print("ბიბლიოთეკა ცარიელია.")
+        return
 
-    found_books = []
-    for book in library:
-        if query in book["title"]:
-            found_books.append(book)
+    print_books()
 
-    if not found_books:
-        print("სამწუხაროდ, წიგნი ამ სათაურით ვერ მოიძებნა.")
+    try:
+        selected = int(input("აირჩიეთ წიგნის ნომერი: "))
+        removed = books.pop(selected - 1)
+
+        print(
+            f"თქვენ აიღეთ წიგნი: {removed['name']}"
+        )
+
+    except (ValueError, IndexError):
+        print("ასეთი წიგნი არ არსებობს.")
+
+
+def find_book():
+    text = input("შეიყვანეთ სახელი: ")
+
+    result = [
+        book for book in books
+        if text.lower() in book["name"].lower()
+    ]
+
+    if result:
+        print("\nნაპოვნი წიგნები:")
+        for book in result:
+            print(
+                f"{book['name']} / {book['writer']} ({book['date']})"
+            )
     else:
-        print(f"\nმოიძებნა {len(found_books)} წიგნი:")
-        for i, book in enumerate(found_books, start=1):
-            print(f"{i}. {book['title']} / {book['author']} ({book['year']})")
+        print("წიგნი ვერ მოიძებნა.")
 
 
-def show_menu():
-    print("\n===== მინი-ბიბლიოთეკა =====")
-    print("1. ყველა წიგნის ნახვა")
-    print("2. ახალი წიგნის დამატება")
-    print("3. წიგნის აღება წასაკითხად")
-    print("4. წიგნის მოძებნა სათაურით")
-    print("5. გასვლა")
+def menu():
+    print("""
+===== ბიბლიოთეკის მენიუ =====
+1 - წიგნების ნახვა
+2 - წიგნის დამატება
+3 - წიგნის აღება
+4 - ძებნა
+5 - დასრულება
+""")
 
 
-def main():
+def run_library():
+
     while True:
-        show_menu()
-        choice = input("აირჩიეთ მოქმედება (1-5): ")
+        menu()
+        action = input("აირჩიეთ მოქმედება: ")
 
-        if choice == "1":
-            show_books()
-        elif choice == "2":
-            add_book()
-        elif choice == "3":
-            borrow_book()
-        elif choice == "4":
-            search_book()
-        elif choice == "5":
-            print("ნახვამდის!")
+        if action == "1":
+            print_books()
+
+        elif action == "2":
+            insert_book()
+
+        elif action == "3":
+            take_book()
+
+        elif action == "4":
+            find_book()
+
+        elif action == "5":
+            print("პროგრამა დასრულდა.")
             break
+
         else:
-            print("გთხოვთ, აირჩიოთ 1-დან 5-მდე მნიშვნელობა.")
+            print("არასწორი არჩევანი.")
 
-
-if __name__ == "__main__":
-    main()
+run_library()
