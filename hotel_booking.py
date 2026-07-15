@@ -20,7 +20,6 @@ if not logger.handlers:
     logger.addHandler(file_handler)
 
 
-
 class Room:
     HIGH_SEASON_MONTHS = {6, 7, 8, 12}       # ზაფხული + დეკემბერი -> ძვირი
     LOW_SEASON_MONTHS = {1, 2, 11}           # ზამთრის მშვიდი პერიოდი -> იაფი
@@ -43,7 +42,7 @@ class Room:
         self.max_guests = max_guests
 
     def book_room(self) -> bool:
-        # დაჯავშნისას is_available=False. აბრუნებს True თუ წარმატებული იყო
+        # დაჯავშნისას is_available=False. აბრუნებს True თუ წარმატებული იყო.
         if not self.is_available:
             return False
         self.is_available = False
@@ -93,12 +92,12 @@ class Customer:
         self.reward_points: int = 0
 
     def add_room(self, room: Room) -> None:
-        # ოთახის დამატება მომხმარებლის დაჯავშნილ სიაში.
+        """ოთახის დამატება მომხმარებლის დაჯავშნილ სიაში."""
         if room not in self.booked_rooms:
             self.booked_rooms.append(room)
 
     def remove_room(self, room: Room) -> None:
-        # ოთახის წაშლა მომხმარებლის დაჯავშნილი ოთახებიდან.
+        """ოთახის წაშლა მომხმარებლის დაჯავშნილი ოთახებიდან."""
         if room in self.booked_rooms:
             self.booked_rooms.remove(room)
 
@@ -115,7 +114,7 @@ class Customer:
         return True
 
     def refund_booking(self, refund_amount: float) -> None:
-        # უბრუნებს მომხმარებელს თანხას და აკლებს შესაბამის ქულებს.
+        """უბრუნებს მომხმარებელს თანხას და აკლებს შესაბამის ქულებს."""
         self.budget += refund_amount
         lost_points = int(refund_amount * self.POINTS_PER_DOLLAR)
         self.reward_points = max(0, self.reward_points - lost_points)
@@ -153,31 +152,26 @@ class Hotel:
         return None
 
     def show_available_rooms(self, room_type: Optional[str] = None) -> List[Room]:
-        # აბრუნებს თავისუფალი ოთახების სიას, სურვილისამებრ გაფილტრულს ტიპის მიხედვით.
+        """
+        აბრუნებს თავისუფალი ოთახების სიას, სურვილისამებრ გაფილტრულს ტიპის მიხედვით.
+        """
         available = [room for room in self.rooms if room.is_available]
         if room_type:
             available = [room for room in available if room.room_type.lower() == room_type.lower()]
         return available
 
     def calculate_total_booking(self, room_number: int, nights: int) -> float:
-        # გამოთვლის ჯამურ ღირებულებას კონკრეტული ოთახისთვის.
+        """გამოთვლის ჯამურ ღირებულებას კონკრეტული ოთახისთვის."""
         room = self.find_room(room_number)
         if room is None:
             raise ValueError(f"ოთახი ნომრით {room_number} ვერ მოიძებნა")
         return room.calculate_price(nights)
 
     def book_room_for_customer(self, customer: Customer, room_number: int, nights: int) -> bool:
-        """
-        ჯავშნის კონკრეტულ ოთახს მომხმარებლისთვის, თუ:
-            1. ოთახი არსებობს და თავისუფალია
-            2. მომხმარებელს აქვს საკმარისი ბიუჯეტი
-
-        აბრუნებს True, თუ დაჯავშნა წარმატებით შესრულდა, სხვა შემთხვევაში False.
-        """
         room = self.find_room(room_number)
         if room is None or not room.is_available:
             logger.warning(
-                # წარუმატებელი დაჯავშნის მცდელობა: ოთახი #%s არ არის ხელმისაწვდომი (მომხმარებელი: %s)
+                "წარუმატებელი დაჯავშნის მცდელობა: ოთახი #%s არ არის ხელმისაწვდომი (მომხმარებელი: %s)",
                 room_number,
                 customer.name,
             )
@@ -187,7 +181,7 @@ class Hotel:
 
         if not customer.pay_for_booking(total_price):
             logger.warning(
-                # წარუმატებელი დაჯავშნა - არასაკმარისი ბიუჯეტი: %s საჭიროებს %s$, აქვს %s$
+                "წარუმატებელი დაჯავშნა - არასაკმარისი ბიუჯეტი: %s საჭიროებს %s$, აქვს %s$",
                 customer.name,
                 total_price,
                 customer.budget,
@@ -203,7 +197,7 @@ class Hotel:
         room = self.find_room(room_number)
         if room is None or room not in customer.booked_rooms:
             logger.warning(
-                # გაუქმების მცდელობა ვერ განხორციელდა: ოთახი #%s არ იძებნება მომხმარებელთან %s
+                "გაუქმების მცდელობა ვერ განხორციელდა: ოთახი #%s არ იძებნება მომხმარებელთან %s",
                 room_number,
                 customer.name,
             )
@@ -231,7 +225,6 @@ class Hotel:
         return True
 
     def log_booking(self, customer: Customer, room: Room, total_price: float) -> None:
-        # ლოგავს დაჯავშნას და ინახავს ისტორიაში (in-memory + JSON ფაილში).
         entry = {
             "timestamp": datetime.now().isoformat(),
             "customer": customer.name,
@@ -242,7 +235,7 @@ class Hotel:
         self.bookings_log.append(entry)
 
         logger.info(
-            # დაჯავშნა შესრულდა: მომხმარებელი=%s, ოთახი=#%s (%s), ჯამური ფასი=%s$
+            "დაჯავშნა შესრულდა: მომხმარებელი=%s, ოთახი=#%s (%s), ჯამური ფასი=%s$",
             customer.name,
             room.room_number,
             room.room_type,
@@ -252,7 +245,7 @@ class Hotel:
         self._save_history_to_file()
 
     def _save_history_to_file(self) -> None:
-        # ინახავს bookings_log-ს JSON ფაილში.
+        """ინახავს bookings_log-ს JSON ფაილში."""
         try:
             with open(HISTORY_FILE_PATH, "w", encoding="utf-8") as f:
                 json.dump(self.bookings_log, f, ensure_ascii=False, indent=2)
@@ -261,7 +254,6 @@ class Hotel:
 
     def __str__(self) -> str:
         return f"Hotel({self.name}, ოთახები: {len(self.rooms)}, დაჯავშნები: {len(self.bookings_log)})"
-
 
 if __name__ == "__main__":
     hotel = Hotel("Tbilisi Grand Hotel")
