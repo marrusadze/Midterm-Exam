@@ -112,5 +112,5 @@ def lottery_app():
             break
         else:
             print("აირჩიეთ მხოლოდ 1 ან 2.")
-
+            
 lottery_app()
